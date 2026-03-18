@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financiero CO - 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <header class="bg-indigo-900 p-6 shadow-2xl border-b border-indigo-500">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+            <div>
+                <h1 id="current-date" class="text-2xl font-bold">18 de Marzo, 2026</h1>
+                <p class="text-indigo-300 italic">"Santoral: San Cirilo de Jerusalén"</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center space-x-4 bg-black bg-opacity-30 p-3 rounded-lg">
+                <div class="text-right">
+                    <p class="text-sm uppercase tracking-widest text-gray-400">Fase Lunar</p>
+                    <p id="moon-phase" class="font-semibold">Luna Nueva 🌑</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-8">
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-indigo-400">Variación Semanal: USD & EUR (TRM)</h2>
+                <canvas id="currencyChart" height="150"></canvas>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 text-green-400">Calculadora de Conversión</h2>
+                <div class="space-y-4">
+                    <input type="number" id="amount" placeholder="Cantidad" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-green-500">
+                    <select id="currency-type" class="w-full p-3 bg-gray-700 rounded border border-gray-600">
+                        <option value="USD">COP a USD</option>
+                        <option value="EUR">COP a EUR</option>
+                        <option value="TO_COP_USD">USD a COP</option>
+                        <option value="TO_COP_EUR">EUR a COP</option>
+                    </select>
+                    <button onclick="convertCurrency()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded font-bold transition">Calcular</button>
+                    <div id="result" class="text-2xl text-center font-mono mt-4 text-green-300">---</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <div class="xl:col-span-3 bg-gray-800 p-6 rounded-xl border border-gray-700 overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-yellow-500">Top 10 Activos del Momento (Acciones, Fondos, ETF, BTC)</h2>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400">
+                            <th class="p-2">Activo</th>
+                            <th class="p-2">Tipo</th>
+                            <th class="p-2">Precio (USD)</th>
+                            <th class="p-2 text-right">Variación 24h</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assets-table-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="bg-indigo-950 p-6 rounded-xl border-2 border-indigo-500 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-2 opacity-10">
+                    <svg width="100" height="100" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                </div>
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <span class="mr-2">✨</span> IA Inversionista
+                </h2>
+                <div class="text-sm leading-relaxed space-y-4">
+                    <p class="font-semibold text-indigo-200">Recomendación Actual:</p>
+                    <p id="ai-advice">"Dada la volatilidad del Bitcoin (-24% YTD), la IA sugiere diversificar en el ETF **SMH (Semiconductores)**, aprovechando que la industria superó el billón de dólares en ingresos este marzo."</p>
+                    <div class="bg-black bg-opacity-40 p-3 rounded text-xs border border-indigo-400">
+                        <p><strong>Nivel de Riesgo:</strong> Moderado/Alto</p>
+                        <p><strong>Factor Clave:</strong> Alta correlación actual entre BTC y el sector Tech.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Datos simulados TRM Colombia - Última Semana
+        const labels = ['Mar 12', 'Mar 13', 'Mar 14', 'Mar 15', 'Mar 16', 'Mar 17', 'Mar 18'];
+        const dataUSD = [3850, 3820, 3797, 3797, 3780, 3795, 3810];
+        const dataEUR = [4120, 4100, 4085, 4085, 4050, 4070, 4095];
+
+        // Gráfico
+        const ctx = document.getElementById('currencyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Dólar (USD)', data: dataUSD, borderColor: '#10b981', tension: 0.3 },
+                    { label: 'Euro (EUR)', data: dataEUR, borderColor: '#6366f1', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: 'white' } } }, scales: { y: { ticks: { color: 'gray' } }, x: { ticks: { color: 'gray' } } } }
+        });
+
+        // Top 10 Activos
+        const assets = [
+            { n: "Bitcoin", t: "Cripto", p: "69,026", v: "-3.1%", c: "text-red-400" },
+            { n: "Nvidia (NVDA)", t: "Acción", p: "895.20", v: "+2.4%", c: "text-green-400" },
+            { n: "iShares SMH", t: "ETF", p: "224.15", v: "+1.8%", c: "text-green-400" },
+            { n: "Ecopetrol", t: "Acción (CO)", p: "0.60", v: "-0.5%", c: "text-red-400" },
+            { n: "Ethereum", t: "Cripto", p: "2,148", v: "-2.8%", c: "text-red-400" },
+            { n: "Vanguard S&P 500", t: "ETF", p: "510.40", v: "+0.2%", c: "text-green-400" },
+            { n: "Apple (AAPL)", t: "Acción", p: "175.10", v: "+0.9%", c: "text-green-400" },
+            { n: "BlackRock BTC Trust", t: "Fondo/ETF", p: "41.94", v: "-3.0%", c: "text-red-400" },
+            { n: "Solana", t: "Cripto", p: "87.22", v: "+4.5%", c: "text-green-400" },
+            { n: "Microsoft", t: "Acción", p: "415.50", v: "+1.1%", c: "text-green-400" }
+        ];
+
+        const tbody = document.getElementById('assets-table-body');
+        assets.forEach(a => {
+            tbody.innerHTML += `<tr class="border-b border-gray-700 hover:bg-gray-700 transition">
+                <td class="p-3 font-medium">${a.n}</td>
+                <td class="p-3 text-gray-400 text-sm">${a.t}</td>
+                <td class="p-3 font-mono">$${a.p}</td>
+                <td class="p-3 text-right ${a.c} font-bold">${a.v}</td>
+            </tr>`;
+        });
+
+        // Calculadora
+        function convertCurrency() {
+            const amount = document.getElementById('amount').value;
+            const type = document.getElementById('currency-type').value;
+            const resDiv = document.getElementById('result');
+            const rates = { usd: 3810, eur: 4095 };
+
+            if(!amount) return;
+
+            let res;
+            if(type === 'USD') res = `$ ${(amount / rates.usd).toFixed(2)} USD`;
+            else if(type === 'EUR') res = `€ ${(amount / rates.eur).toFixed(2)} EUR`;
+            else if(type === 'TO_COP_USD') res = `$ ${(amount * rates.usd).toLocaleString()} COP`;
+            else res = `$ ${(amount * rates.eur).toLocaleString()} COP`;
+
+            resDiv.innerText = res;
+        }
+    </script>
+</body>
+</html>
